@@ -1,17 +1,59 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import express from "express";
+import mysql from "mysql";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const app = express();
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+//podaci za spajanje na bazu
+const db = mysql.createConnection({
+  host:"student.veleri.hr",
+  user:"hcancarev",
+  password:"11",
+  database:"hcancarev"
+})
+
+//api prikaz knjiga
+app.get("/knjige", (req,res)=>{
+  const q="select * from Knjiga";
+  db.query(q,(err, data)=>{
+    if(err) return res.json(err)
+    return res.json(data);
+  })
+})
+//api prikaz autora
+app.get("/autori", (req,res)=>{
+  const q="select * from Autori"
+  db.query(q,(err, data)=>{
+    if(err) return res.json(err)
+    return res.json(data);
+  })
+})
+//api dohvat prodanih knjiga
+app.get("/prodaneKnjige", (req,res)=>{
+  const q="SELECT k.id_kupnja, k.datum_kupnje as datum,"
+          +"knjiga.naziv as naziv,autor.naziv_autor,"
+          +"knjiga.cijena_knjige as cijena FROM Kupnja k "
+          +"left outer join Knjiga as knjiga on knjiga.id_knjiga=k.id_knjiga "
+          +"left outer join Autor as autor on knjiga.id_autor=autor.id_autor ";
+  db.query(q,(err, data)=>{
+    if(err) return res.json(err)
+    return res.json(data);
+  })
+})
+
+//api- prikaz posudenih knjiga
+app.get("/posudeneKnjige", (req,res)=>{
+  const q="SELECT p.id_posudba, knjiga.naziv as Naziv,a.naziv_autor, clan.ime_clana+' '+clan.prezime_clana as Posudio FROM Posudba p "
+    	    +"left outer join Knjiga as knjiga on knjiga.id_knjiga=p.id_knjiga "
+          +"left outer join Clan as clan on clan.id_clan=p.id_clan "
+          +"left outer join Autor a on a.id_autor=knjiga.id_autor";
+  db.query(q,(err, data)=>{
+    if(err) return res.json(err)
+    return res.json(data);
+  })
+})
+
+
+//test za backend
+app.listen(8800, ()=>{
+  console.log("Connected to backend!");
+})
