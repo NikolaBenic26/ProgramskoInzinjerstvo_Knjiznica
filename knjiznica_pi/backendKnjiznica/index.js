@@ -11,6 +11,8 @@ const db = mysql.createConnection({
   database:"hcancarev"
 })
 
+app.use(express.json());
+
 //api prikaz knjiga
 app.get("/knjige", (req,res)=>{
   const q="select * from Knjiga";
@@ -51,6 +53,38 @@ app.get("/posudeneKnjige", (req,res)=>{
     return res.json(data);
   })
 })
+
+app.post("/novaKnjiga", (req,res)=>{
+  const q ="INSERT INTO Knjiga (Naziv, Godina_izdavanja, Cijena_knjige, Zanr_knjige, ID_Autor) VALUES (?)";
+
+  const values =[
+    req.body.naziv,
+    req.body.god_izd,
+    req.body.cijena_knjige,
+    req.body.zanr_knjige,
+    req.body.id_autor
+  ]
+  db.query(q,[values], (err,data)=>{
+    if(err)return res.json(err)
+    return res.json(data)
+  })
+})
+
+
+app.post("/noviAutor", (req, res)=>{
+  const q ="INSERT INTO Autor (Naziv_autor, nacionalnost) VALUES (?)";
+
+  const values = [
+    req.body.naziv_autor,
+    req.body.nacionalnost
+  ]
+
+  db.query(q,[values], (err,data)=>{
+    if(err) return res.json(err)
+    return res.json(data)
+  })
+})
+
 
 
 //test za backend
