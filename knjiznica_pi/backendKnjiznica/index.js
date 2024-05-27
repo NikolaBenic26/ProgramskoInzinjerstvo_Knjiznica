@@ -85,6 +85,53 @@ app.post("/noviAutor", (req, res)=>{
   })
 })
 
+//nova kupnja gost
+app.post("/novaKupnjaGost", (req, res)=>{
+ 
+  const qGost ="INSERT INTO Gost (Ime, Prezime, Adresa, Grad, Postanski_broj, Kontakt_broj) VALUES (?)";
+  const valuesGost = [
+    req.body.Ime,
+    req.body.Prezime,
+    req.body.Adresa,
+    req.body.Grad,
+    req.body.Postanski_broj,
+    req.body.Kontakt
+  ]
+  db.query(qGost,[valuesGost], (err,data)=>{
+    if(err) return res.json(err)
+
+  const gost_id = data.insertId;
+
+  const qKupnja ="INSERT INTO Kupnja (datum_kupnje, id_knjiga, id_gost) VALUES (now() ,?)";
+
+  const detaljiKupnje = [
+    req.body.id_knjiga,
+    gost_id
+  ] 
+
+  db.query(qKupnja,[detaljiKupnje], (err,data)=>{
+    if(err) return res.json(err)
+    return res.json(data)
+    });
+  });
+});
+
+
+//nova kupnja clan
+app.post("/novaKupnjaClan", (req, res)=>{
+
+  const qKupnja ="INSERT INTO Kupnja (datum_kupnje, id_knjiga, id_clan) VALUES (now() ,?)";
+
+  const detaljiKupnje = [
+    req.body.id_knjiga,
+    req.body.id_clan
+  ] 
+
+  db.query(qKupnja,[detaljiKupnje], (err,data)=>{
+    if(err) return res.json(err)
+    return res.json(data)
+    });
+  });
 
 
 //test za backend
