@@ -200,6 +200,18 @@ app.put("/updateClan/:id", (req,res) => {
       })
     })
 
+//brisanje
+//brisanje knjige
+app.delete("/deleteKnjiga/:id", (req,res)=>{
+  const knjigaId = req.params.id;
+  const q = "DELETE FROM Knjiga WHERE id_knjiga=?";
+
+  db.query(q, [knjigaId], (err,data)=>{
+    if(err) return res.json(err);
+    return res.json(data);
+  })
+})
+
 
 //test za backend
 app.listen(8800, ()=>{
