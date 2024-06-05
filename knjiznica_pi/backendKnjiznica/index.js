@@ -212,6 +212,17 @@ app.delete("/deleteKnjiga/:id", (req,res)=>{
   })
 })
 
+//brisanje clana
+app.delete("/deleteClan/:id", (req,res)=>{
+  const clanId = req.params.id;
+  const q = "DELETE FROM Clan WHERE id_clan=?";
+
+  db.query(q, [clanId], (err,data)=>{
+    if(err) return res.json(err);
+    return res.json(data);
+  })
+})
+
 
 //test za backend
 app.listen(8800, ()=>{
