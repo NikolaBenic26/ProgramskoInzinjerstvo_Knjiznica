@@ -133,6 +133,24 @@ app.post("/novaKupnjaClan", (req, res)=>{
     });
   });
 
+//unos nabave
+app.post("/unosNabave", (req, res)=>{
+
+  const qNabava ="INSERT INTO Administrator (datum_nabave, id_admin, cijena_nabave, naziv_knjige) VALUES (now() ,?)";
+
+  const detaljiNabave = [
+    req.body.id_admin,
+    req.body.cijena_nabave,
+    req.body.naziv_knjige
+  ] 
+
+  db.query(qNabava,[detaljiNabave], (err,data)=>{
+    if(err) return res.json(err)
+    return res.json(data)
+    });
+  });
+
+
 
 //test za backend
 app.listen(8800, ()=>{
