@@ -185,6 +185,21 @@ app.put("/updateAutor/:id", (req,res) => {
   })
 })
 
+//izmjena clana 
+app.put("/updateClan/:id", (req,res) => {
+  const autorId = req.params.id;
+  const q= "UPDATE Clan SET naziv_autor=?,nacionalnost=? where id_autor=?";
+  
+      const values =[
+        req.body.naziv_autor,
+        req.body.nacionalnost
+      ]
+      db.query(q, [...values,autorId], (err,data)=>{
+        if(err) return res.json(err);
+        return res.json(data);
+      })
+    })
+
 
 //test za backend
 app.listen(8800, ()=>{
