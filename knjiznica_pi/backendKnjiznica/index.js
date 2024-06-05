@@ -150,6 +150,25 @@ app.post("/unosNabave", (req, res)=>{
     });
   });
 
+  //api izmjene -update
+  
+  //izmjena knjige
+  app.put("/updateKnjiga/:id", (req,res) => {
+    const knjigaId = req.params.id;
+    const q= "UPDATE Knjiga SET naziv=?, godina_izdavanja=?, cijena_knjige=?, zanr_knjige=?, id_autor=? where id_knjiga=?";
+
+    const values =[
+      req.body.naziv,
+      req.body.god_izd,
+      req.body.cijena_knjige,
+      req.body.zanr_knjige,
+      req.body.id_autor
+    ]
+    db.query(q, [...values,knjigaId], (err,data)=>{
+      if(err) return res.json(err);
+      return res.json(data);
+    })
+  })
 
 
 //test za backend
