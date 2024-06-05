@@ -223,6 +223,17 @@ app.delete("/deleteClan/:id", (req,res)=>{
   })
 })
 
+//brisanje kupnje
+app.delete("/deleteKupnja/:id", (req,res)=>{
+  const kupnjaId = req.params.id;
+  const q = "DELETE FROM Kupnja WHERE id_kupnja=?";
+
+  db.query(q, [kupnjaId], (err,data)=>{
+    if(err) return res.json(err);
+    return res.json(data);
+  })
+})
+
 
 //test za backend
 app.listen(8800, ()=>{
