@@ -49,9 +49,22 @@
   margin-bottom: auto;
 }
 
-.filters p {
+.filters-buttons {
+  display: flex;
+  flex-direction: column;
+}
+
+.filters-buttons button {
   margin: 10px 0;
-  font-weight: bold;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  align-items: center;
+  transition: background-color 0.3s;
+}
+
+.filters-buttons button:hover {
+  background-color: #BC8F8F; /* RosyBrown */
 }
 
 /* Search bar */
@@ -71,7 +84,7 @@
   padding: 5px;
   font-size: 16px;
   cursor: pointer;
-  background-color: #8B4513; /* SaddleBrown */
+  background-color: whitesmoke; /* SaddleBrown */
   color: white;
   border: none;
   transition: background-color 0.3s;
