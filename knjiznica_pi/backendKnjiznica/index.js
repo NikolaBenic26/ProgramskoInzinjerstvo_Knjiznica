@@ -29,6 +29,14 @@ app.get("/autori", (req,res)=>{
     return res.json(data);
   })
 })
+
+app.get("/clanovi", (req,res)=>{
+  const q="select * from Clan";
+  db.query(q,(err, data)=>{
+    if(err) return res.json(err)
+    return res.json(data);
+  })
+})
 //api dohvat prodanih knjiga
 app.get("/prodaneKnjige", (req,res)=>{
   const q="SELECT k.id_kupnja, k.datum_kupnje as datum,"
