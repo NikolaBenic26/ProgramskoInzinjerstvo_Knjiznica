@@ -90,7 +90,7 @@ const MainPage = () => {
                 </div>
                 <div className="book-details">
                   <p>{book.naziv}</p>
-                  <p>{book.autor}</p>
+                  <p>{book.naziv_autor}</p>
                   <p>{book.godina_izdavanja}</p>
                 </div>
               </div>

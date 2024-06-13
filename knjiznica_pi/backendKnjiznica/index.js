@@ -173,6 +173,18 @@ app.get('/knjige', (req, res) => {
   });
 });
 
+app.get('/knjigeMain', (req, res) => {
+  const query = `
+    SELECT k.id_knjiga, k.naziv, k.godina_izdavanja, k.cijena_knjige, k.zanr_knjige, k.slika, a.naziv_autor 
+    FROM Knjiga k
+    LEFT JOIN Autor a ON k.id_autor = a.id_autor
+  `;
+  db.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
 // API to add a new book
 app.post('/knjige', upload.single('slika'), (req, res) => {
   const { naziv, godina_izdavanja, cijena_knjige, zanr_knjige, id_autor } = req.body;
