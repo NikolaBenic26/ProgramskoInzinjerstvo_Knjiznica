@@ -1,20 +1,21 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import './MainPage.css';
 import MainPage from './MainPage';
-import KupnjaKnjiga from './KupnjaKnjiga.jsx';
-import Prijava from './Prijava.jsx';
-import Registracija from './Registracija.jsx';
+import KupnjaKnjiga from './KupnjaKnjiga';
+import Prijava from './Prijava';
+import Registracija from './Registracija';
+import StranicaAdmin from './StranicaAdmin';
 
 function App() {
   return (
     <Router>
       <div className="App">
         <Routes>
-          <Route exact path="/" element={<MainPage />} />
+          <Route path="/" element={<MainPage />} />
           <Route path="/kupnja-knjiga" element={<KupnjaKnjiga />} />
           <Route path="/prijava" element={<Prijava />} />
           <Route path="/registracija" element={<Registracija />} />
+          <Route path="/StranicaAdmin" element={<StranicaAdmin />} />
         </Routes>
       </div>
     </Router>

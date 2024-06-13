@@ -8,7 +8,7 @@ function Registracija() {
         ime_clana: '',
         prezime_clana: '',
         adresa_clana: '',
-        grad: '',
+        grad_clan: '',
         postanski_broj: '',
         kontakt_broj: '',
         korisnicko_ime: '',
@@ -32,7 +32,7 @@ function Registracija() {
         if (!formData.ime_clana) newErrors.ime_clana = 'Ime is required';
         if (!formData.prezime_clana) newErrors.prezime_clana = 'Prezime is required';
         if (!formData.adresa_clana) newErrors.adresa_clana = 'Adresa is required';
-        if (!formData.grad) newErrors.grad = 'Grad is required';
+        if (!formData.grad_clan) newErrors.grad_clan = 'Grad is required';
         if (!formData.postanski_broj) {
             newErrors.postanski_broj = 'Poštanski broj is required';
         } else if (!/^\d{5}$/.test(formData.postanski_broj)) {
@@ -112,12 +112,12 @@ function Registracija() {
                         type="text"
                         className="form-inputRegistracija"
                         placeholder="Grad"
-                        name="grad"
-                        value={formData.grad}
+                        name="grad_clan"
+                        value={formData.grad_clan}
                         onChange={handleChange}
                         required
                     />
-                    {errors.grad && <span className="error">{errors.grad}</span>}
+                    {errors.grad_clan && <span className="error">{errors.grad_clan}</span>}
                     <input
                         type="text"
                         className="form-inputRegistracija"
@@ -165,6 +165,6 @@ function Registracija() {
             </div>
         </div>
     );
-}
+};
 
 export default Registracija;

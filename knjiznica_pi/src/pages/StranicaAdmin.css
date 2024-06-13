@@ -1,0 +1,104 @@
+/* StranicaAdmin.css */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .admin-pageAdmin {
+    display: flex;
+    height: 100vh;
+  }
+  
+  .sidebarAdmin {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    width: 250px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .menu-headerAdmin {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .menu-buttonsAdmin, .filtersAdmin {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .menu-buttonsAdmin button, .filtersAdmin button {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border: none;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .menu-buttonsAdmin button:hover, .filtersAdmin button:hover {
+    background-color: #1abc9c;
+  }
+  
+  .contentAdmin {
+    flex-grow: 1;
+    background-color: #ecf0f1;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
+  .headerAdmin {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .members-tableAdmin {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .members-tableAdmin th, .members-tableAdmin td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .members-tableAdmin th {
+    background-color: #34495e;
+    color: #ecf0f1;
+  }
+  
+  .members-tableAdmin tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .members-tableAdmin input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin: 0;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .members-tableAdmin button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin: 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .members-tableAdmin button:hover {
+    background-color: #2980b9;
+  }
+  

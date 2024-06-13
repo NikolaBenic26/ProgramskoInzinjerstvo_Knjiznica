@@ -6,6 +6,7 @@ import axios from 'axios';
 const MainPage = () => {
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -20,6 +21,21 @@ const MainPage = () => {
     fetchBooks();
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
+
+  const handleLogout = () => {
+    const confirmLogout = window.confirm('Are you sure you want to log out?');
+    if (confirmLogout) {
+      localStorage.removeItem('token');
+      setIsLoggedIn(false);
+      alert('You have successfully logged out');
+      navigate('/');
+    }
+  };
+
   return (
     <div className="main-page">
       <aside className="sidebar">
@@ -28,8 +44,14 @@ const MainPage = () => {
             <h2>IZBORNIK</h2>
           </div>
           <div className="menu-buttons">
-            <button onClick={() => navigate('Prijava')}>PRIJAVA</button>
-            <button onClick={() => navigate('Registracija')}>REGISTRACIJA</button>
+            {isLoggedIn ? (
+              <button onClick={handleLogout}>ODJAVA</button>
+            ) : (
+              <>
+                <button onClick={() => navigate('Prijava')}>PRIJAVA</button>
+                <button onClick={() => navigate('Registracija')}>REGISTRACIJA</button>
+              </>
+            )}
           </div>
           <div className="filters">
             <div className="filters-buttons">

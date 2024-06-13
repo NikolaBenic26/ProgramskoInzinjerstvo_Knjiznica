@@ -56,29 +56,39 @@ const authenticateJWT = (req, res, next) => {
 
 // User registration endpoint
 app.post('/register', async (req, res) => {
-  const { ime_clana, prezime_clana, adresa_clana, grad, postanski_broj, kontakt_broj, korisnicko_ime, lozinka } = req.body;
+  const { ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, lozinka } = req.body;
 
   try {
-    const hashedPassword = await bcrypt.hash(lozinka, 10);
-    const query = 'INSERT INTO Clan (ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, lozinka) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    const values = [ime_clana, prezime_clana, adresa_clana, grad, postanski_broj, kontakt_broj, korisnicko_ime, hashedPassword];
-    
-    db.query(query, values, (err, results) => {
+    db.query('SELECT * FROM Clan WHERE korisnicko_ime = ?', [korisnicko_ime], async (err, results) => {
       if (err) {
-        console.error('Database query error:', err);
-        return res.status(500).json({ message: 'Error registering user', error: err });
+        return res.status(500).json({ message: 'Database query error', error: err });
+      }
+      if (results.length > 0) {
+        return res.status(400).json({ message: 'Username already exists' });
       }
 
-      const id_clan = results.insertId; // Get the inserted id_clan
-      const token = jwt.sign({ id_clan }, jwtSecret, { expiresIn: '1h' }); // Generate JWT token with id_clan
+      const hashedPassword = await bcrypt.hash(lozinka, 10);
+      const query = 'INSERT INTO Clan (ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, lozinka) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+      const values = [ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, hashedPassword];
+      
+      db.query(query, values, (err, results) => {
+        if (err) {
+          console.error('Error registering user:', err);
+          return res.status(500).json({ message: 'Error registering user', error: err });
+        }
 
-      res.status(200).json({ message: 'User registered successfully', token });
+        const id_clan = results.insertId; // Get the inserted id_clan
+        const token = jwt.sign({ id_clan }, jwtSecret, { expiresIn: '1h' }); // Generate JWT token with id_clan
+
+        res.status(200).json({ message: 'User registered successfully', token });
+      });
     });
   } catch (error) {
     console.error('Error processing request:', error);
     res.status(500).json({ message: 'Error processing request', error });
   }
 });
+
 
 // Get all users
 app.get('/users', (req, res) => {
@@ -141,20 +151,66 @@ app.delete('/user/:id', (req, res) => {
 
 
 // User login endpoint
-app.post("/login", (req, res) => {
+app.post('/login', (req, res) => {
   const { korisnicko_ime, lozinka } = req.body;
 
-  const query = "SELECT * FROM Clan WHERE korisnicko_ime = ?";
-  db.query(query, [korisnicko_ime], async (err, data) => {
-    if (err) return res.status(500).json(err);
-    if (data.length === 0) return res.status(400).json({ message: "Neispravno korisničko ime ili lozinka." });
+  const query = 'SELECT * FROM Clan WHERE korisnicko_ime = ?';
+  db.query(query, [korisnicko_ime], async (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ message: 'Error logging in', error: err });
+    }
+    if (results.length === 0) {
+      return res.status(400).json({ message: 'Invalid username or password' });
+    }
+    const user = results[0];
+    const isMatch = await bcrypt.compare(lozinka, user.lozinka);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid username or password' });
+    }
 
-    const user = data[0];
-    const validLozinka = await bcrypt.compare(lozinka, user.lozinka);
-    if (!validLozinka) return res.status(400).json({ message: "Neispravno korisničko ime ili lozinka." });
+    const token = jwt.sign({ id_clan: user.id_clan, role: user.korisnicko_ime === 'admin' ? 'admin' : 'user' }, jwtSecret, { expiresIn: '1h' });
+    res.status(200).json({ message: 'Login successful', token, role: user.korisnicko_ime === 'admin' ? 'admin' : 'user' });
+  });
+});
 
-    const token = jwt.sign({ id: user.id, korisnicko_ime: user.korisnicko_ime }, jwtSecret, { expiresIn: '1h' });
-    res.json({ token });
+app.post('/logout', (req, res) => {
+  // No real server-side logout needed for stateless JWT, just a placeholder
+  res.status(200).json({ message: 'Logout successful' });
+});
+
+
+app.get('/clanovi', authenticateToken, (req, res) => {
+  const query = 'SELECT * FROM Clan';
+  db.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Update a member
+app.put('/clanovi/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const { ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, lozinka } = req.body;
+  const hashedPassword = lozinka ? bcrypt.hashSync(lozinka, 10) : null;
+
+  const query = `UPDATE Clan SET ime_clana=?, prezime_clana=?, adresa_clana=?, grad_clan=?, postanski_broj=?, kontakt_broj=?, korisnicko_ime=?, lozinka=? WHERE id_clan=?`;
+  const values = [ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, hashedPassword, id];
+
+  db.query(query, values, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Member updated successfully' });
+  });
+});
+
+// Delete a member
+app.delete('/clanovi/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM Clan WHERE id_clan=?';
+
+  db.query(query, [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Member deleted successfully' });
   });
 });
 
@@ -332,23 +388,6 @@ app.put("/updateAutor/:id", authenticateJWT, (req, res) => {
   });
 });
 
-// API to update member
-app.put("/updateClan/:id", authenticateJWT, (req, res) => {
-  const memberId = req.params.id;
-  const query = "UPDATE Clan SET ime_clana = ?, prezime_clana = ?, adresa = ?, grad = ?, postanski_broj = ?, kontakt_broj = ? WHERE id_clan = ?";
-  const values = [
-    req.body.ime_clana,
-    req.body.prezime_clana,
-    req.body.adresa,
-    req.body.grad,
-    req.body.postanski_broj,
-    req.body.kontakt_broj
-  ];
-  db.query(query, [...values, memberId], (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
-  });
-});
 
 // API to delete book
 app.delete("/deleteKnjiga/:id", authenticateJWT, (req, res) => {
@@ -360,15 +399,6 @@ app.delete("/deleteKnjiga/:id", authenticateJWT, (req, res) => {
   });
 });
 
-// API to delete member
-app.delete("/deleteClan/:id", authenticateJWT, (req, res) => {
-  const memberId = req.params.id;
-  const query = "DELETE FROM Clan WHERE id_clan = ?";
-  db.query(query, [memberId], (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
-  });
-});
 
 // API to delete purchase
 app.delete("/deleteKupnja/:id", authenticateJWT, (req, res) => {
