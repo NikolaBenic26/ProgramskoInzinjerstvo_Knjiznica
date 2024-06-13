@@ -1,0 +1,63 @@
+.containerKnjiga {
+    display: flex;
+    border: 1px solid black;
+    padding: 20px;
+    position: relative;
+  }
+  
+  .back-buttonKnjiga {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+  }
+  
+  .member-infoKnjiga {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    text-align: right;
+  }
+  
+  .image-containerKnjiga {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .image-placeholderKnjiga {
+    width: 200px;
+    height: 300px;
+    border: 2px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .detailsKnjiga {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 20px;
+  }
+  
+  .detail-itemKnjiga {
+    margin-bottom: 10px;
+  }
+  
+  .labelKnjiga {
+    font-weight: bold;
+  }
+  
+  .buttonsKnjiga {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+  }
+  
+  .action-buttonKnjiga {
+    margin-bottom: 10px;
+    padding: 10px;
+  }
+  
