@@ -135,3 +135,15 @@
 .form-buttonRegistracija:hover {
   background-color: #A0522D; /* Sienna */
 }
+
+.error {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
+.server-error {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+}
+

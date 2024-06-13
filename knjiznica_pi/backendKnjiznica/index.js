@@ -56,16 +56,16 @@ const authenticateJWT = (req, res, next) => {
 
 // User registration endpoint
 app.post('/register', async (req, res) => {
-  const { ime_clana, prezime_clana, adresa, grad, postanski_broj, kontakt_broj, korisnicko_ime, lozinka } = req.body;
+  const { ime_clana, prezime_clana, adresa_clana, grad, postanski_broj, kontakt_broj, korisnicko_ime, lozinka } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(lozinka, 10);
-    const query = 'INSERT INTO Clan (ime_clana, prezime_clana, adresa, grad, postanski_broj, kontakt_broj, korisnicko_ime, lozinka) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    const values = [ime_clana, prezime_clana, adresa, grad, postanski_broj, kontakt_broj, korisnicko_ime, hashedPassword];
+    const query = 'INSERT INTO Clan (ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, lozinka) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+    const values = [ime_clana, prezime_clana, adresa_clana, grad, postanski_broj, kontakt_broj, korisnicko_ime, hashedPassword];
     
     db.query(query, values, (err, results) => {
       if (err) {
-        console.error('Error registering user:', err);
+        console.error('Database query error:', err);
         return res.status(500).json({ message: 'Error registering user', error: err });
       }
 
@@ -78,6 +78,64 @@ app.post('/register', async (req, res) => {
     console.error('Error processing request:', error);
     res.status(500).json({ message: 'Error processing request', error });
   }
+});
+
+// Get all users
+app.get('/users', (req, res) => {
+  const query = 'SELECT * FROM Clan';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ message: 'Error fetching users', error: err });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// Get a single user by ID
+app.get('/user/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'SELECT * FROM Clan WHERE id_clan = ?';
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ message: 'Error fetching user', error: err });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(results[0]);
+  });
+});
+
+// Update a user by ID
+app.put('/user/:id', (req, res) => {
+  const { id } = req.params;
+  const { ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, lozinka } = req.body;
+  const query = 'UPDATE Clan SET ime_clana = ?, prezime_clana = ?, adresa_clana = ?, grad_clan = ?, postanski_broj = ?, kontakt_broj = ?, korisnicko_ime = ?, lozinka = ? WHERE id_clan = ?';
+  const values = [ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, lozinka, id];
+  
+  db.query(query, values, (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ message: 'Error updating user', error: err });
+    }
+    res.status(200).json({ message: 'User updated successfully' });
+  });
+});
+
+// Delete a user by ID
+app.delete('/user/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM Clan WHERE id_clan = ?';
+  
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ message: 'Error deleting user', error: err });
+    }
+    res.status(200).json({ message: 'User deleted successfully' });
+  });
 });
 
 
