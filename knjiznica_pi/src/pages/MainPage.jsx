@@ -12,6 +12,7 @@ const MainPage = () => {
     const fetchBooks = async () => {
       try {
         const response = await axios.get('http://localhost:8800/knjige');
+        console.log('Books fetched:', response.data); // Log the fetched data
         setBooks(response.data);
       } catch (error) {
         console.error('Error fetching the books:', error);
@@ -34,6 +35,10 @@ const MainPage = () => {
       alert('You have successfully logged out');
       navigate('/');
     }
+  };
+
+  const handleBookClick = (id) => {
+    navigate(`/book/${id}`);
   };
 
   return (
@@ -71,16 +76,26 @@ const MainPage = () => {
           <h1>KNJIŽNICA STRIBOR</h1>
         </header>
         <div className="books-grid">
-          {books.map((book) => (
-            <div className="book-card" key={book.id_knjiga}>
-              <div className="book-image">SLIKA</div>
-              <div className="book-details">
-                <p>{book.naziv}</p>
-                <p>{book.autor}</p>
-                <p>{book.godina_izdavanja}</p>
+          {books.length === 0 ? (
+            <p>No books available</p>
+          ) : (
+            books.map((book) => (
+              <div className="book-card" key={book.id_knjiga} onClick={() => handleBookClick(book.id_knjiga)}>
+                <div className="book-image">
+                  {book.slika ? (
+                    <img src={`http://localhost:8800${book.slika}`} alt={book.naziv} />
+                  ) : (
+                    'SLIKA'
+                  )}
+                </div>
+                <div className="book-details">
+                  <p>{book.naziv}</p>
+                  <p>{book.autor}</p>
+                  <p>{book.godina_izdavanja}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </main>
     </div>

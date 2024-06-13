@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import cors from "cors";
-
+import multer from "multer";
 
 
 // Load environment variables from .env file
@@ -32,13 +32,13 @@ db.connect((err) => {
 });
 
 app.use(cors({
-  origin: 'http://localhost:3000', // Replace with the origin of your frontend
+  origin: 'http://localhost:3000',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true // Allow credentials (cookies, authorization headers, etc.)
+  credentials: true
 }));
 
 app.use(express.json());
-
+app.use('/uploads', express.static('uploads'));
 
 // Middleware to authenticate JWT
 const authenticateJWT = (req, res, next) => {
@@ -53,6 +53,17 @@ const authenticateJWT = (req, res, next) => {
     res.status(400).json({ message: "Invalid token." });
   }
 };
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}_${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage });
 
 // User registration endpoint
 app.post('/register', async (req, res) => {
@@ -77,8 +88,8 @@ app.post('/register', async (req, res) => {
           return res.status(500).json({ message: 'Error registering user', error: err });
         }
 
-        const id_clan = results.insertId; // Get the inserted id_clan
-        const token = jwt.sign({ id_clan }, jwtSecret, { expiresIn: '1h' }); // Generate JWT token with id_clan
+        const id_clan = results.insertId;
+        const token = jwt.sign({ id_clan }, jwtSecret, { expiresIn: '1h' });
 
         res.status(200).json({ message: 'User registered successfully', token });
       });
@@ -89,66 +100,17 @@ app.post('/register', async (req, res) => {
   }
 });
 
-
-// Get all users
-app.get('/users', (req, res) => {
+// Get all members
+app.get('/clanovi', authenticateJWT, (req, res) => {
   const query = 'SELECT * FROM Clan';
   db.query(query, (err, results) => {
     if (err) {
       console.error('Database query error:', err);
-      return res.status(500).json({ message: 'Error fetching users', error: err });
+      return res.status(500).json({ message: 'Error fetching members', error: err });
     }
     res.status(200).json(results);
   });
 });
-
-// Get a single user by ID
-app.get('/user/:id', (req, res) => {
-  const { id } = req.params;
-  const query = 'SELECT * FROM Clan WHERE id_clan = ?';
-  db.query(query, [id], (err, results) => {
-    if (err) {
-      console.error('Database query error:', err);
-      return res.status(500).json({ message: 'Error fetching user', error: err });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.status(200).json(results[0]);
-  });
-});
-
-// Update a user by ID
-app.put('/user/:id', (req, res) => {
-  const { id } = req.params;
-  const { ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, lozinka } = req.body;
-  const query = 'UPDATE Clan SET ime_clana = ?, prezime_clana = ?, adresa_clana = ?, grad_clan = ?, postanski_broj = ?, kontakt_broj = ?, korisnicko_ime = ?, lozinka = ? WHERE id_clan = ?';
-  const values = [ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, lozinka, id];
-  
-  db.query(query, values, (err, results) => {
-    if (err) {
-      console.error('Database query error:', err);
-      return res.status(500).json({ message: 'Error updating user', error: err });
-    }
-    res.status(200).json({ message: 'User updated successfully' });
-  });
-});
-
-// Delete a user by ID
-app.delete('/user/:id', (req, res) => {
-  const { id } = req.params;
-  const query = 'DELETE FROM Clan WHERE id_clan = ?';
-  
-  db.query(query, [id], (err, results) => {
-    if (err) {
-      console.error('Database query error:', err);
-      return res.status(500).json({ message: 'Error deleting user', error: err });
-    }
-    res.status(200).json({ message: 'User deleted successfully' });
-  });
-});
-
-
 
 // User login endpoint
 app.post('/login', (req, res) => {
@@ -175,21 +137,10 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-  // No real server-side logout needed for stateless JWT, just a placeholder
   res.status(200).json({ message: 'Logout successful' });
 });
 
-
-app.get('/clanovi', authenticateToken, (req, res) => {
-  const query = 'SELECT * FROM Clan';
-  db.query(query, (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
-});
-
-// Update a member
-app.put('/clanovi/:id', authenticateToken, (req, res) => {
+app.put('/clanovi/:id', authenticateJWT, (req, res) => {
   const { id } = req.params;
   const { ime_clana, prezime_clana, adresa_clana, grad_clan, postanski_broj, kontakt_broj, korisnicko_ime, lozinka } = req.body;
   const hashedPassword = lozinka ? bcrypt.hashSync(lozinka, 10) : null;
@@ -203,8 +154,7 @@ app.put('/clanovi/:id', authenticateToken, (req, res) => {
   });
 });
 
-// Delete a member
-app.delete('/clanovi/:id', authenticateToken, (req, res) => {
+app.delete('/clanovi/:id', authenticateJWT, (req, res) => {
   const { id } = req.params;
   const query = 'DELETE FROM Clan WHERE id_clan=?';
 
@@ -214,23 +164,124 @@ app.delete('/clanovi/:id', authenticateToken, (req, res) => {
   });
 });
 
-// API to get all books
-app.get("/knjige", authenticateJWT, (req, res) => {
-  const query = "SELECT * FROM Knjiga";
-  db.query(query, (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
+// Get all books
+app.get('/knjige', (req, res) => {
+  const query = 'SELECT * FROM Knjiga';
+  db.query(query, (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+  });
+});
+
+// API to add a new book
+app.post('/knjige', upload.single('slika'), (req, res) => {
+  const { naziv, godina_izdavanja, cijena_knjige, zanr_knjige, id_autor } = req.body;
+  const slika = req.file ? `/uploads/${req.file.filename}` : null;
+  
+  // Ensure all required fields are provided
+  if (!naziv || !godina_izdavanja || !cijena_knjige || !zanr_knjige || !id_autor || !slika) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  const query = 'INSERT INTO Knjiga (naziv, godina_izdavanja, cijena_knjige, zanr_knjige, id_autor, slika) VALUES (?, ?, ?, ?, ?, ?)';
+  const values = [naziv, godina_izdavanja, cijena_knjige, zanr_knjige, id_autor, slika];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error('Error inserting new book:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.status(201).json({ id: result.insertId, ...req.body, slika });
   });
 });
 
 
+// Update a book
+app.put('/knjige/:id', (req, res) => {
+  const { id } = req.params;
+  const { naziv, godina_izdavanja, cijena_knjige, zanr_knjige, id_autor, slika } = req.body;
+  const query = 'UPDATE Knjiga SET naziv = ?, godina_izdavanja = ?, cijena_knjige = ?, zanr_knjige = ?, id_autor = ?, slika = ? WHERE id_knjiga = ?';
+  db.query(query, [naziv, godina_izdavanja, cijena_knjige, zanr_knjige, id_autor, slika, id], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Book updated successfully' });
+  });
+});
 
-// API to get all authors
-app.get("/autori", authenticateJWT, (req, res) => {
-  const query = "SELECT * FROM Autor";
-  db.query(query, (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
+// Delete a book
+app.delete('/knjige/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM Knjiga WHERE id_knjiga = ?';
+  db.query(query, [id], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Book deleted successfully' });
+  });
+});
+
+app.get('/autori', authenticateJWT, (req, res) => {
+  const query = 'SELECT * FROM Autor';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ message: 'Error fetching authors', error: err });
+    }
+    res.status(200).json(results);
+  });
+});
+
+
+// Get a single author by ID
+app.get('/autor/:id', authenticateJWT, (req, res) => {
+  const { id } = req.params;
+  const query = 'SELECT * FROM Autor WHERE id_autor = ?';
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ message: 'Error fetching author', error: err });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+    res.status(200).json(results[0]);
+  });
+});
+
+// Add a new author
+app.post('/autor', authenticateJWT, (req, res) => {
+  const { naziv_autor, nacionalnost } = req.body;
+  const query = 'INSERT INTO Autor (naziv_autor, nacionalnost) VALUES (?, ?)';
+  db.query(query, [naziv_autor, nacionalnost], (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ message: 'Error adding author', error: err });
+    }
+    res.status(201).json({ message: 'Author added successfully', id: results.insertId });
+  });
+});
+
+// Update an author by ID
+app.put('/autor/:id', authenticateJWT, (req, res) => {
+  const { id } = req.params;
+  const { naziv_autor, nacionalnost } = req.body;
+  const query = 'UPDATE Autor SET naziv_autor = ?, nacionalnost = ? WHERE id_autor = ?';
+  db.query(query, [naziv_autor, nacionalnost, id], (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ message: 'Error updating author', error: err });
+    }
+    res.status(200).json({ message: 'Author updated successfully' });
+  });
+});
+
+// Delete an author by ID
+app.delete('/autor/:id', authenticateJWT, (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM Autor WHERE id_autor = ?';
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ message: 'Error deleting author', error: err });
+    }
+    res.status(200).json({ message: 'Author deleted successfully' });
   });
 });
 
@@ -258,8 +309,8 @@ app.get("/posudeneKnjige", authenticateJWT, (req, res) => {
   const query = `
     SELECT 
       p.id_posudba, 
-      knjiga.naziv AS naziv,
-      a.naziv_autor, 
+      CONCAT(knjiga.naziv, ', ', a.naziv_autor) AS naziv_autor,
+      '1' AS kolicina,
       CONCAT(clan.ime_clana, ' ', clan.prezime_clana) AS posudio 
     FROM Posudba p 
     LEFT JOIN Knjiga AS knjiga ON knjiga.id_knjiga = p.id_knjiga 
@@ -272,34 +323,6 @@ app.get("/posudeneKnjige", authenticateJWT, (req, res) => {
   });
 });
 
-// API to add a new book
-app.post("/novaKnjiga", authenticateJWT, (req, res) => {
-  const query = "INSERT INTO Knjiga (naziv, godina_izdavanja, cijena_knjige, zanr_knjige, id_autor) VALUES (?)";
-  const values = [
-    req.body.naziv,
-    req.body.god_izd,
-    req.body.cijena_knjige,
-    req.body.zanr_knjige,
-    req.body.id_autor
-  ];
-  db.query(query, [values], (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
-  });
-});
-
-// API to add a new author
-app.post("/noviAutor", authenticateJWT, (req, res) => {
-  const query = "INSERT INTO Autor (naziv_autor, nacionalnost) VALUES (?)";
-  const values = [
-    req.body.naziv_autor,
-    req.body.nacionalnost
-  ];
-  db.query(query, [values], (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
-  });
-});
 
 // API to add a new purchase by guest
 app.post("/novaKupnjaGost", authenticateJWT, (req, res) => {
@@ -369,20 +392,6 @@ app.put("/updateKnjiga/:id", authenticateJWT, (req, res) => {
     req.body.id_autor
   ];
   db.query(query, [...values, bookId], (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
-  });
-});
-
-// API to update author
-app.put("/updateAutor/:id", authenticateJWT, (req, res) => {
-  const authorId = req.params.id;
-  const query = "UPDATE Autor SET naziv_autor = ?, nacionalnost = ? WHERE id_autor = ?";
-  const values = [
-    req.body.naziv_autor,
-    req.body.nacionalnost
-  ];
-  db.query(query, [...values, authorId], (err, data) => {
     if (err) return res.status(500).json(err);
     res.json(data);
   });
