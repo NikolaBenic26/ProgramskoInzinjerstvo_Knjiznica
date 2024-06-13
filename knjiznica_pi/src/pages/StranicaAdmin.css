@@ -58,7 +58,7 @@ body {
     position: relative;
 }
 
-.add-book-button {
+.add-book-button, .add-author-button {
     position: absolute;
     top: 50%;
     left: 20px;
@@ -72,32 +72,33 @@ body {
     transition: background-color 0.3s ease;
 }
 
-.add-book-button:hover {
+.add-book-button:hover, .add-author-button:hover {
     background-color: #27ae60;
 }
 
-.members-tableAdmin, .borrowed-books-tableAdmin {
+.members-tableAdmin, .borrowed-books-tableAdmin, .authors-tableAdmin {
     width: 100%;
     border-collapse: collapse;
 }
 
 .members-tableAdmin th, .members-tableAdmin td,
-.borrowed-books-tableAdmin th, .borrowed-books-tableAdmin td {
+.borrowed-books-tableAdmin th, .borrowed-books-tableAdmin td,
+.authors-tableAdmin th, .authors-tableAdmin td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #ddd;
 }
 
-.members-tableAdmin th, .borrowed-books-tableAdmin th {
+.members-tableAdmin th, .borrowed-books-tableAdmin th, .authors-tableAdmin th {
     background-color: #34495e;
     color: #ecf0f1;
 }
 
-.members-tableAdmin tr:hover, .borrowed-books-tableAdmin tr:hover {
+.members-tableAdmin tr:hover, .borrowed-books-tableAdmin tr:hover, .authors-tableAdmin tr:hover {
     background-color: #f1f1f1;
 }
 
-.members-tableAdmin input[type="text"], .borrowed-books-tableAdmin input[type="text"] {
+.members-tableAdmin input[type="text"], .borrowed-books-tableAdmin input[type="text"], .authors-tableAdmin input[type="text"] {
     width: 100%;
     padding: 8px;
     margin: 0;
@@ -106,7 +107,7 @@ body {
     border-radius: 4px;
 }
 
-.members-tableAdmin button, .borrowed-books-tableAdmin button {
+.members-tableAdmin button, .borrowed-books-tableAdmin button, .authors-tableAdmin button {
     background-color: #3498db;
     color: white;
     border: none;
@@ -117,7 +118,7 @@ body {
     transition: background-color 0.3s ease;
 }
 
-.members-tableAdmin button:hover, .borrowed-books-tableAdmin button:hover {
+.members-tableAdmin button:hover, .borrowed-books-tableAdmin button:hover, .authors-tableAdmin button:hover {
     background-color: #2980b9;
 }
 

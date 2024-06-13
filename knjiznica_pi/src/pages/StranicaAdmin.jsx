@@ -12,10 +12,13 @@ const StranicaAdmin = () => {
     const [authors, setAuthors] = useState([]);
     const [editingMember, setEditingMember] = useState(null);
     const [editingBook, setEditingBook] = useState(null);
+    const [editingAuthor, setEditingAuthor] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [showBorrowedBooks, setShowBorrowedBooks] = useState(false);
     const [showBooks, setShowBooks] = useState(false);
+    const [showAuthors, setShowAuthors] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [showAuthorModal, setShowAuthorModal] = useState(false);
     const [newBook, setNewBook] = useState({
         naziv: '',
         godina_izdavanja: '',
@@ -23,6 +26,10 @@ const StranicaAdmin = () => {
         zanr_knjige: '',
         naziv_autor: '',
         slika: null
+    });
+    const [newAuthor, setNewAuthor] = useState({
+        naziv_autor: '',
+        nacionalnost: ''
     });
     const [error, setError] = useState(null);
 
@@ -214,15 +221,72 @@ const StranicaAdmin = () => {
         }
     };
 
+    const handleAddNewAuthor = async () => {
+        try {
+            await axios.post(`http://localhost:8800/autori`, newAuthor, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+
+            setShowAuthorModal(false);
+            setNewAuthor({
+                naziv_autor: '',
+                nacionalnost: ''
+            });
+            fetchAuthors();
+        } catch (error) {
+            console.error('Error adding new author:', error);
+            setError('Error adding new author');
+        }
+    };
+
+    const handleEditAuthor = (author) => {
+        setEditingAuthor(author);
+    };
+
+    const handleDeleteAuthor = async (id) => {
+        if (window.confirm('Are you sure you want to delete this author?')) {
+            try {
+                await axios.delete(`http://localhost:8800/autori/${id}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                fetchAuthors();
+            } catch (error) {
+                console.error('Error deleting author:', error);
+                setError('Error deleting author');
+            }
+        }
+    };
+
+    const handleSaveAuthor = async () => {
+        try {
+            if (editingAuthor.id_autor) {
+                await axios.put(`http://localhost:8800/autori/${editingAuthor.id_autor}`, editingAuthor, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+            } else {
+                await axios.post(`http://localhost:8800/autori`, editingAuthor, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+            }
+            setEditingAuthor(null);
+            fetchAuthors();
+        } catch (error) {
+            console.error('Error saving author:', error);
+            setError('Error saving author');
+        }
+    };
+
     useEffect(() => {
         if (showBorrowedBooks) {
             fetchBorrowedBooks();
         } else if (showBooks) {
             fetchBooks();
+        } else if (showAuthors) {
+            fetchAuthors();
         } else {
             fetchMembers();
         }
-    }, [showBorrowedBooks, showBooks]);
+    }, [showBorrowedBooks, showBooks, showAuthors]);
 
     if (!isAdmin) return null;
 
@@ -234,10 +298,10 @@ const StranicaAdmin = () => {
                         <h2>Administrator</h2>
                     </div>
                     <div className="menu-buttonsAdmin">
-                        <button onClick={() => { setShowBorrowedBooks(false); setShowBooks(false); }}>ČLANOVI</button>
-                        <button onClick={() => { setShowBorrowedBooks(true); setShowBooks(false); }}>POSUDENE KNJIGE</button>
-                        <button onClick={() => { setShowBorrowedBooks(false); setShowBooks(false); }}>KUPLJENE KNJIGE</button>
-                        <button onClick={() => { setShowBorrowedBooks(false); setShowBooks(true); }}>KNJIGE</button>
+                        <button onClick={() => { setShowBorrowedBooks(false); setShowBooks(false); setShowAuthors(false); }}>ČLANOVI</button>
+                        <button onClick={() => { setShowBorrowedBooks(true); setShowBooks(false); setShowAuthors(false); }}>POSUDENE KNJIGE</button>
+                        <button onClick={() => { setShowBorrowedBooks(false); setShowBooks(true); setShowAuthors(false); }}>KNJIGE</button>
+                        <button onClick={() => { setShowBorrowedBooks(false); setShowBooks(false); setShowAuthors(true); }}>AUTORI</button>
                     </div>
                     <div className="filtersAdmin">
                         <button onClick={handleLogout}>ODJAVA</button>
@@ -246,11 +310,12 @@ const StranicaAdmin = () => {
             </aside>
             <main className="contentAdmin">
                 <header className="headerAdmin">
-                    <h1>{showBorrowedBooks ? 'POSUDENE KNJIGE' : showBooks ? 'KNJIGE' : 'ČLANOVI'}</h1>
+                    <h1>{showBorrowedBooks ? 'POSUDENE KNJIGE' : showBooks ? 'KNJIGE' : showAuthors ? 'AUTORI' : 'ČLANOVI'}</h1>
                     {showBooks && <button className="add-book-button" onClick={() => setShowModal(true)}>DODAJ NOVU KNJIGU</button>}
+                    {showAuthors && <button className="add-author-button" onClick={() => setShowAuthorModal(true)}>DODAJ NOVOG AUTORA</button>}
                 </header>
                 {error && <div className="error-message">{error}</div>}
-                {!showBorrowedBooks && !showBooks && (
+                {!showBorrowedBooks && !showBooks && !showAuthors && (
                     <table className="members-tableAdmin">
                         <thead>
                             <tr>
@@ -376,6 +441,45 @@ const StranicaAdmin = () => {
                         </tbody>
                     </table>
                 )}
+                {showAuthors && (
+                    <table className="authors-tableAdmin">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>NAZIV AUTOR</th>
+                                <th>NACIONALNOST</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {authors.map(author => (
+                                <tr key={author.id_autor}>
+                                    {editingAuthor && editingAuthor.id_autor === author.id_autor ? (
+                                        <>
+                                            <td>{author.id_autor}</td>
+                                            <td><input type="text" value={editingAuthor.naziv_autor} onChange={e => setEditingAuthor({ ...editingAuthor, naziv_autor: e.target.value })} /></td>
+                                            <td><input type="text" value={editingAuthor.nacionalnost} onChange={e => setEditingAuthor({ ...editingAuthor, nacionalnost: e.target.value })} /></td>
+                                            <td>
+                                                <button onClick={handleSaveAuthor}>Save</button>
+                                                <button onClick={() => setEditingAuthor(null)}>Cancel</button>
+                                            </td>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <td>{author.id_autor}</td>
+                                            <td>{author.naziv_autor}</td>
+                                            <td>{author.nacionalnost}</td>
+                                            <td>
+                                                <button onClick={() => handleEditAuthor(author)}>Edit</button>
+                                                <button onClick={() => handleDeleteAuthor(author.id_autor)}>Delete</button>
+                                            </td>
+                                        </>
+                                    )}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
             </main>
             {showModal && (
                 <div className="modal">
@@ -396,6 +500,17 @@ const StranicaAdmin = () => {
                         <input type="file" onChange={e => setNewBook({ ...newBook, slika: e.target.files[0] })} />
                         <button onClick={handleAddNewBook}>Save</button>
                         <button onClick={() => setShowModal(false)}>Cancel</button>
+                    </div>
+                </div>
+            )}
+            {showAuthorModal && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h2>DODAJ NOVOG AUTORA</h2>
+                        <input type="text" placeholder="Naziv autora" value={newAuthor.naziv_autor} onChange={e => setNewAuthor({ ...newAuthor, naziv_autor: e.target.value })} />
+                        <input type="text" placeholder="Nacionalnost" value={newAuthor.nacionalnost} onChange={e => setNewAuthor({ ...newAuthor, nacionalnost: e.target.value })} />
+                        <button onClick={handleAddNewAuthor}>Save</button>
+                        <button onClick={() => setShowAuthorModal(false)}>Cancel</button>
                     </div>
                 </div>
             )}
